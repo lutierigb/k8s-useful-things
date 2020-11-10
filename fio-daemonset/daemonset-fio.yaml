@@ -1,0 +1,35 @@
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: fio2
+spec:
+  selector:
+    matchLabels:
+      name: fio2
+  template:
+    metadata:
+      labels:
+        name: fio2
+    spec:
+      containers:
+      - name: fio2
+        image: gcr.io/google-containers/toolbox 
+        tty: true
+        command:
+        - /bin/bash
+        - -c
+        - |
+           apt-get update; apt-get install -y fio ;
+           fio --directory=/host-tmp --name fio2  --rw=randwrite --bs=16k --time_based --runtime 600 --numjobs=4 --size=50M
+        resources:
+          requests:
+            memory: "50Mi"
+            cpu: "10m"
+        volumeMounts:
+        - mountPath: /host-tmp
+          name: tmp
+      volumes:
+      - hostPath:
+          path: /tmp
+          type: ""
+        name: tmp

@@ -1,0 +1,53 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  labels:
+    run: stresstest
+  name: stresstest
+spec:
+  progressDeadlineSeconds: 600
+  replicas: 5
+  revisionHistoryLimit: 2
+  selector:
+    matchLabels:
+      run: stresstest
+  strategy:
+    rollingUpdate:
+      maxSurge: 50%
+      maxUnavailable: 10%
+    type: RollingUpdate
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        run: stresstest
+    spec:
+      containers:
+      - args:
+        - -c
+        - stress -c 2 -t 50 ; sleep 1d
+        command:
+        - /bin/sh
+        image: polinux/stress
+        imagePullPolicy: Always
+        name: stresstest
+        readinessProbe:
+          exec:
+            command:
+            - ls
+          failureThreshold: 3
+          initialDelaySeconds: 50
+          periodSeconds: 5
+          successThreshold: 1
+          timeoutSeconds: 1
+        resources:
+          limits:
+            cpu: 100m
+            memory: 50Mi
+        terminationMessagePath: /dev/termination-log
+        terminationMessagePolicy: File
+      dnsPolicy: ClusterFirst
+      restartPolicy: Always
+      schedulerName: default-scheduler
+      securityContext: {}
+      terminationGracePeriodSeconds: 30

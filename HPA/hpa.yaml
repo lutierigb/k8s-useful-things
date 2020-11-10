@@ -1,0 +1,18 @@
+apiVersion: autoscaling/v2beta1
+kind: HorizontalPodAutoscaler
+metadata:
+  name: stress2
+spec:
+  maxReplicas: 10
+  minReplicas: 5
+  metrics:
+  - resource:
+      name: cpu
+      targetAverageValue: 80m
+    type: Resource
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: stresstest
+
+

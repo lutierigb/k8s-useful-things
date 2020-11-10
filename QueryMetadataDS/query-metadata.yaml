@@ -1,0 +1,27 @@
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: query-metadata-test
+  labels:
+    k8s-app: query-metadata-test
+spec:
+  selector:
+    matchLabels:
+      name: query-metadata-test
+  template:
+    metadata:
+      labels:
+        name: query-metadata-test
+    spec:
+      containers:
+      - args:
+        - sh
+        - -c
+        - while true; do echo trying; date; curl -H Metadata-Flavor:Google -m 1 http://metadata.google.internal/computeMetadata/v1/project/project-id
+          ; echo; echo; sleep 1; done
+        image: curlimages/curl
+        name: query-metadata-test
+        resources:
+          limits:
+            cpu: 1m
+            memory: 50Mi

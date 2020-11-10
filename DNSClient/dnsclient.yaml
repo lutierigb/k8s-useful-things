@@ -1,0 +1,10 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: dnsclient
+spec:
+  containers:
+  - name: dnsclient
+    image: gcr.io/kubernetes-e2e-test-images/dnsutils:1.1
+    command: ["sh", "-c"]
+    args: ["while true ; do date && dig +short kubernetes.default.svc.cluster.local && sleep 1; done"]
