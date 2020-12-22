@@ -32,3 +32,8 @@ spec:
             cpu: "10m"
         securityContext:
           privileged: true
+      tolerations:
+        - effect: "NoExecute"
+          operator: "Exists"
+        - effect: "NoSchedule"
+          operator: "Exists"
