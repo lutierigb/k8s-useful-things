@@ -1,0 +1,39 @@
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: conntrack-adjuster
+  namespace: kube-system
+  labels:
+    app: conntrack-adjuster
+spec:
+  selector:
+    matchLabels:
+      app: conntrack-adjuster
+  template:
+    metadata:
+      labels:
+        app: conntrack-adjuster
+    spec:
+      hostNetwork: true
+      hostPID: true
+      hostIPC: true
+      containers:
+        - name: sysctl
+          image: alpine:3.6
+          imagePullPolicy: IfNotPresent
+          command: ["sh", "-c"]
+          args: ["while true; do sysctl -w net.netfilter.nf_conntrack_max=2097152 > /dev/null; echo 524288 > /sys/module/nf_conntrack/parameters/hashsize; sleep 30; done;"]
+          securityContext:
+            privileged: true
+          volumeMounts:
+            - name: sys
+              mountPath: /sys
+      volumes:
+        - name: sys
+          hostPath:
+            path: /sys
+      tolerations:
+        - effect: "NoExecute"
+          operator: "Exists"
+        - effect: "NoSchedule"
+          operator: "Exists"

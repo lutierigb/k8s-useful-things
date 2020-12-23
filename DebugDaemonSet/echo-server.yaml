@@ -1,0 +1,26 @@
+apiVersion: v1
+kind: Pod
+metadata:
+ name: echo-server
+spec:
+  containers:
+  - image: cdfuller/echo-server
+    command:
+    - python
+    - echo.py
+    - -v
+    - -b
+    - "$(MY_IP)"
+    env:
+     - name: MY_IP
+       valueFrom:
+          fieldRef:
+            fieldPath: status.podIP
+    imagePullPolicy: Always
+    name: echo-server
+    resources:
+      requests:
+        cpu: 100m
+  serviceAccount: default
+  serviceAccountName: default
+  terminationGracePeriodSeconds: 30
