@@ -1,0 +1,52 @@
+---
+#################################################
+# ConfigMap for index.html for service-b v2
+#################################################
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: service-b-cm-v2
+data:
+  index.html: |
+    <body bgcolor="gray">
+      <center>
+        <h1>Service B</h1>
+        <h1>V2</h1>
+      </center>
+    </body>
+---
+#################################################
+# Deployment: service-b v2
+#################################################
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: service-b-v2
+  labels:
+    app: service-b
+    version: v2
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: service-b
+      version: v2
+  template:
+    metadata:
+      labels:
+        app: service-b
+        version: v2
+    spec:
+      containers:
+      - image: nginx
+        name: nginx
+        volumeMounts:
+        - name: index-html
+          mountPath: /usr/share/nginx/html
+        ports:
+        - containerPort: 80
+      volumes:
+      - name: index-html
+        configMap:
+          name: service-b-cm-v2
