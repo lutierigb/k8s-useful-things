@@ -1,0 +1,89 @@
+# Runs these shell commands before applying the yaml below:
+
+#KEY=/tmp/nginx.key
+#CERT=/tmp/nginx.crt
+
+#openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout ${KEY} -out ${CERT} -subj "/CN=nginxsvc/O=nginxsvc"
+
+#kubectl create secret tls nginx-certs --key /tmp/nginx.key --cert /tmp/nginx.crt
+
+
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: nginx-config
+data:
+  default.conf: |
+    server {
+        #listen 80 default_server;
+        #listen [::]:80 default_server ipv6only=on;
+
+        listen 443 ssl;
+
+        root /usr/share/nginx/html;
+        index index.html;
+
+        server_name localhost;
+        ssl_certificate /etc/nginx/ssl/tls.crt;
+        ssl_certificate_key /etc/nginx/ssl/tls.key;
+
+        location / {
+                try_files $uri $uri/ =404;
+        }
+    }
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nginx-https
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: nginx-https
+  template:
+    metadata:
+      labels:
+        app: nginx-https
+#      annotations:
+#          sidecar.istio.io/rewriteAppHTTPProbers: "true"
+    spec:
+      containers:
+      - image: nginx
+        name: nginx
+        volumeMounts:
+        - name: nginx-config
+          mountPath: /etc/nginx/conf.d/
+        - mountPath: /etc/nginx/ssl
+          name: nginx-certs
+        ports:
+#        - containerPort: 80
+        - containerPort: 443
+      volumes:
+      - name: nginx-config
+        configMap:
+          name: nginx-config
+      - name: nginx-certs
+        secret:
+          secretName: nginx-certs
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: nginx-https
+  annotations:
+    #annotation used by GCE Ingress to define the backend protocol
+    cloud.google.com/app-protocols: '{"my-https-port":"HTTPS"}'
+    #used to create NEGs, instead of using instance groups
+    cloud.google.com/neg: '{"ingress": true}'
+spec:
+  type: ClusterIP
+  ports:
+  # - port: 80
+  #   protocol: TCP
+  #   name: http
+  - port: 443
+    protocol: TCP
+    name: my-https-port
+  selector:
+    app: nginx-https
