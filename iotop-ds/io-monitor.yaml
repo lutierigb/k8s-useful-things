@@ -1,0 +1,36 @@
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: io-monitor
+  namespace: kube-system
+  labels:
+    app: io-monitor
+spec:
+  selector:
+    matchLabels:
+      app: io-monitor
+  template:
+    metadata:
+      labels:
+        app: io-monitor
+    spec:
+      nodeSelector:
+        cloud.google.com/gke-nodepool: "<node pool name>"
+      hostNetwork: true
+      hostPID: true
+      containers:
+      - command:
+        - sh
+        - -c
+        - apk update; apk add iotop-c; iotop --only --hide-graph --hide-prio --fullcmdline --batch --delay 10
+        image: alpine
+        securityContext:
+          privileged: true
+          capabilities:
+            add: ["SYS_ADMIN"]
+        name: iotop
+      tolerations:
+        - effect: "NoExecute"
+          operator: "Exists"
+        - effect: "NoSchedule"
+          operator: "Exists"
