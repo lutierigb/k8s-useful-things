@@ -1,0 +1,30 @@
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: python3-alias
+  namespace: default
+  labels:
+    k8s-app: python3-alias
+spec:
+  selector:
+    matchLabels:
+      name: python3-alias
+  template:
+    metadata:
+      labels:
+        name: python3-alias
+    spec:
+      hostPID: true
+      containers:
+        - name: startup-script
+          image: gcr.io/google-containers/startup-script:v1
+          imagePullPolicy: Always
+          securityContext:
+            privileged: true
+          env:
+          - name: STARTUP_SCRIPT
+            value: |
+              if [ ! -f "/usr/bin/python" ]; then
+              	echo "Running command sudo ln -s /usr/bin/python3 /usr/bin/python"
+              	sudo ln -s /usr/bin/python3 /usr/bin/python
+              fi
