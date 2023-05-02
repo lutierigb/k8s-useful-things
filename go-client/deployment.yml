@@ -1,0 +1,39 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  creationTimestamp: null
+  labels:
+    app: bigtable
+  name: bigtable
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: bigtable
+  strategy: {}
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        app: bigtable
+    spec:
+      serviceAccountName: bigtable
+      nodeSelector:
+        iam.gke.io/gke-metadata-server-enabled: "true"
+      containers:
+      - image: asia-southeast1-docker.pkg.dev/lgb123/yellow/bigtable-connection:10
+        name: bigtable-connection
+        env:
+        - name: GRPC_GO_LOG_VERBOSITY_LEVEL
+          value: "99"
+        - name: GRPC_GO_LOG_SEVERITY_LEVEL
+          value: info
+        - name: PROJECT
+          value: lgb123
+        - name: INSTANCE
+          value: my-first-instance
+        args: ["--project", "$(PROJECT)","--instance", "$(INSTANCE)"]
+        command: 
+        - "/go/bin/main"
+        resources: {}
+status: {}
